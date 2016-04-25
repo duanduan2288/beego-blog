@@ -30,14 +30,14 @@ func (this *LoginController) Post() {
 		this.Ctx.WriteString("请输入密码")
 		return
 	}
-	db, err := sql.Open("mysql", "root:@/qiangdawei")
+	db, err := sql.Open("mysql", "root:@/blog")
 	if err != nil {
 		this.Ctx.WriteString("连接数据库错误")
 		return
 	}
 	var password string
 
-	err2 := db.QueryRow("select password from dv_user where email=?", username).Scan(&password)
+	err2 := db.QueryRow("select password from user where email=?", username).Scan(&password)
 
 	if err2 == nil {
 		h := md5.New()

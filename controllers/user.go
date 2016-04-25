@@ -16,9 +16,9 @@ type UserController struct {
 
 func (this *UserController) Index() {
 
-	db, _ := sql.Open("mysql", "root:@/qiangdawei")
+	db, _ := sql.Open("mysql", "root:@/blog")
 
-	rows, _ := db.Query("select * from dv_user")
+	rows, _ := db.Query("select * from user")
 
 	defer rows.Close()
 
@@ -98,7 +98,7 @@ func (this *UserController) CreateUser() {
 
 		mobile := this.GetString("mobile")
 
-		db, err := sql.Open("mysql", "root:@/qiangdawei")
+		db, err := sql.Open("mysql", "root:@/blog")
 
 		if err != nil {
 			flash.Error("连接数据库出错")
@@ -106,7 +106,7 @@ func (this *UserController) CreateUser() {
 			this.Redirect("/create", 302)
 		}
 		var dbpassword string
-		db.QueryRow("select password as dbpassword from dv_user where email=?", email).Scan(&dbpassword)
+		db.QueryRow("select password as dbpassword from user where email=?", email).Scan(&dbpassword)
 
 		if len(dbpassword) > 0 {
 			flash.Error("用户名已存在")
@@ -117,7 +117,7 @@ func (this *UserController) CreateUser() {
 		h.Write([]byte(password))
 		md5password := hex.EncodeToString(h.Sum(nil))
 
-		stmt, err := db.Prepare("INSERT INTO dv_user(email,password,create_time,create_ip,mobile,last_ip) VALUES(?,?,?,?,?,?)")
+		stmt, err := db.Prepare("INSERT INTO user(email,password,create_time,create_ip,mobile,last_ip) VALUES(?,?,?,?,?,?)")
 
 		defer stmt.Close()
 
@@ -127,7 +127,7 @@ func (this *UserController) CreateUser() {
 			flash.Store(&this.Controller)
 			this.Redirect("/create", 302)
 		}
-		create_time := time.Second
+		create_time := time.Now()
 		create_ip := this.Ctx.Request.Header.Get("X-Forwarded-For")
 
 		_, err3 := stmt.Exec(email, md5password, create_time, create_ip, mobile, create_ip)
