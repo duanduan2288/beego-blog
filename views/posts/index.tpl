@@ -15,14 +15,37 @@
 				<td>{{$value.status}}</td>
 				<td>
 					<a href='{{urlfor "PostsController.Edit" ":id" $value.id}}'>编辑</a>
-					{{if "正常" == $value.status}}
-						<a href='{{urlfor "PostsController.Delete" ":id" $value.id}}'>删除</a>
+					{{if eq $value.status "正常" }}
+						<a href="javascript:;" class="delete" data-id="{{$value.id}}" data-value="删除">删除</a>
 					{{else}}
-						<a href='{{urlfor "PostsController.Delete" ":id" $value.id}}'>回复</a>
-					{{endif}}
+						<a href="javascript:;" class="delete" data-id="{{$value.id}}" data-value="正常">恢复</a>
+					{{end}}
 				</td>
 			</tr>
 			{{end}}
 		</table>
 	</div>
 </div>
+<script type="text/javascript">
+	$(function(){	  
+		$('.table').on("click",".delete",function(){
+			var id = $(this).data("id");
+			var status = $(this).data("value");
+			$.ajax({
+				type:"post",
+				url:"http://127.0.0.1:8080/posts/delete",
+				data:{"id":id,"status":status},
+				dataType:"json",
+				success:function(data){
+					alert(data.message);
+					window.location.reload();
+				},
+				error:function(){
+					alert("删除失败");
+				}
+			});
+		});
+		
+	});
+	
+</script>

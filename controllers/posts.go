@@ -141,6 +141,64 @@ func (this *PostsController) Edit() {
 		this.Redirect("/posts/index", 302)
 	}
 
+	db, err := sql.Open("mysql", "root:@/blog")
+
+	if nil != err {
+		flash.Error(err.Error())
+		flash.Store(&this.Controller)
+		this.Redirect("/posts/index", 302)
+	}
+
+	var title string
+	var content string
+	var create_time string
+
+	err1 := db.QueryRow("select title,content,create_time from posts where id=?", id).Scan(&title, &content, &create_time)
+	if nil != err1 {
+		flash.Error(err1.Error())
+		flash.Store(&this.Controller)
+		this.Redirect("/posts/index", 302)
+	}
+	this.Data["id"] = id
+	this.Data["title"] = title
+	this.Data["content"] = content
+	this.Data["create_time"] = create_time
+	this.Layout = "layouts/main.tpl"
+	this.TplName = "posts/edit.tpl"
+
+}
+
+func (this *PostsController) SaveEdit() {
+	flash := beego.NewFlash()
+	id := this.GetString("id")
+	title := this.GetString("title")
+	content := this.GetString("content")
+
+	db, err := sql.Open("mysql", "root:@/blog")
+
+	if nil != err {
+		flash.Error(err.Error())
+		flash.Store(&this.Controller)
+		this.Redirect("/posts/edit/"+id, 302)
+	}
+	stmt, err1 := db.Prepare("UPDATE posts SET title=?,content=? WHERE id=?")
+	if nil != err1 {
+		flash.Error(err.Error())
+		flash.Store(&this.Controller)
+		this.Redirect("/posts/edit/"+id, 302)
+	}
+
+	defer stmt.Close()
+
+	_, err2 := stmt.Exec(title, content, id)
+	if nil != err2 {
+		flash.Error(err2.Error())
+		flash.Store(&this.Controller)
+		this.Redirect("/posts/edit/"+id, 302)
+	}
+
+	this.Redirect("/posts/index", 302)
+
 }
 
 //删除文章
@@ -148,7 +206,8 @@ func (this *PostsController) Delete() {
 
 	mystruct := make(map[string]string)
 	id := this.GetString("id")
-	if "" == id {
+	status := this.GetString("status")
+	if "" == id || "" == status {
 
 		mystruct["info"] = "error"
 		mystruct["message"] = "参数错误"
@@ -167,21 +226,21 @@ func (this *PostsController) Delete() {
 	if nil != err1 {
 
 		mystruct["info"] = "error"
-		mystruct["message"] = "更新失败"
+		mystruct["message"] = "操作失败"
 		this.Data["json"] = &mystruct
 		this.ServeJSON()
 	}
-	_, err3 := stmt.Exec("删除", id)
+	_, err3 := stmt.Exec(status, id)
 
 	if nil != err3 {
 
 		mystruct["info"] = "error"
-		mystruct["message"] = "删除失败"
+		mystruct["message"] = "操作失败"
 		this.Data["json"] = &mystruct
 		this.ServeJSON()
 	}
 	mystruct["info"] = "ok"
-	mystruct["message"] = "删除成功"
+	mystruct["message"] = "操作成功"
 	this.Data["json"] = &mystruct
 	this.ServeJSON()
 }
