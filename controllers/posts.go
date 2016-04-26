@@ -35,8 +35,6 @@ func (this *PostsController) Index() {
 			scanArgs[i] = &values[i]
 		}
 
-		//	list := make([]interface{}, len(columns))
-
 		for rows.Next() {
 			//将行数据保存到record字典
 			rows.Scan(scanArgs...)
@@ -51,11 +49,16 @@ func (this *PostsController) Index() {
 			list = append(list, record)
 		}
 	}
+	beego.ReadFromRequest(&this.Controller)
 	this.Data["list"] = list
 	this.Layout = "layouts/main.tpl"
 	this.TplName = "posts/index.tpl"
 }
 
+/**
+*
+*创建文章
+ */
 func (this *PostsController) Create() {
 	if this.Ctx.Input.IsGet() {
 		this.Layout = "layouts/main.tpl"
@@ -94,6 +97,7 @@ func (this *PostsController) Create() {
 	}
 }
 
+//文章详情
 func (this *PostsController) Detail() {
 
 	flash := beego.NewFlash()
@@ -126,10 +130,58 @@ func (this *PostsController) Detail() {
 	this.Layout = "layouts/main.tpl"
 	this.TplName = "posts/detail.tpl"
 }
+
+//编辑文章
 func (this *PostsController) Edit() {
+	flash := beego.NewFlash()
+	id := this.Ctx.Input.Param(":id")
+	if "" == id {
+		flash.Error("参数为空")
+		flash.Store(&this.Controller)
+		this.Redirect("/posts/index", 302)
+	}
 
 }
 
+//删除文章
 func (this *PostsController) Delete() {
 
+	mystruct := make(map[string]string)
+	id := this.GetString("id")
+	if "" == id {
+
+		mystruct["info"] = "error"
+		mystruct["message"] = "参数错误"
+		this.Data["json"] = &mystruct
+		this.ServeJSON()
+	}
+	db, err := sql.Open("mysql", "root:@/blog")
+	if nil != err {
+
+		mystruct["info"] = "error"
+		mystruct["message"] = "数据库连接出错"
+		this.Data["json"] = &mystruct
+		this.ServeJSON()
+	}
+	stmt, err1 := db.Prepare("UPDATE posts SET status=? where id=?")
+	if nil != err1 {
+
+		mystruct["info"] = "error"
+		mystruct["message"] = "更新失败"
+		this.Data["json"] = &mystruct
+		this.ServeJSON()
+	}
+	_, err3 := stmt.Exec("删除", id)
+
+	if nil != err3 {
+
+		mystruct["info"] = "error"
+		mystruct["message"] = "删除失败"
+		this.Data["json"] = &mystruct
+		this.ServeJSON()
+	}
+	mystruct["info"] = "ok"
+	mystruct["message"] = "删除成功"
+	this.Data["json"] = &mystruct
+	this.ServeJSON()
 }

@@ -5,7 +5,7 @@
 		    <h2 class="panel-title">{{.title}}</h2>
 		  </div>
 		  <div class="panel-body">
-		    {{.content}}
+		    {{str2html .content}}			
 		  </div>
 		</div>
 	</div>
