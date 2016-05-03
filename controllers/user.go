@@ -140,3 +140,6 @@ func (this *UserController) CreateUser() {
 
 	}
 }
+func (this *UserController) Edit() {
+
+}
