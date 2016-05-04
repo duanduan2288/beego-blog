@@ -25,4 +25,7 @@ func init() {
 	beego.Router("/join", &controllers.AppController{}, "get,post:Join")
 	beego.Router("/ws", &controllers.WebSocketController{}, "get:Get")
 	beego.Router("/ws/join", &controllers.WebSocketController{}, "get,post:Join")
+	beego.Router("/lp", &controllers.LongPollingController{}, "get:Join")
+	beego.Router("/lp/post", &controllers.LongPollingController{}, "post:Post")
+	beego.Router("/lp/fetch", &controllers.LongPollingController{}, "get,post:Fetch")
 }

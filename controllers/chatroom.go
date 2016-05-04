@@ -15,7 +15,7 @@ type Subscription struct {
 	New     <-chan models.Event
 }
 
-func newEvent(ep model.EventType, user, msg string) models.Event {
+func newEvent(ep models.EventType, user, msg string) models.Event {
 	return models.Event{ep, user, int(time.Now().Unix()), msg}
 }
 
@@ -33,54 +33,52 @@ type Subscriber struct {
 }
 
 var (
-	// Channel for new join users.
-	subscribe = make(chan Subscriber, 10)
-	// Channel for exit users.
+	subscribe   = make(chan Subscriber, 10)
 	unsubscribe = make(chan string, 10)
-	// Send events here to publish them.
-	publish = make(chan models.Event, 10)
-	// Long polling waiting list.
+	publish     = make(chan models.Event, 10)
 	waitingList = list.New()
-	subscribers = list.New()
+	subscribes  = list.New()
 )
 
 // This function handles all incoming chan messages.
+
 func chatroom() {
 	for {
 		select {
 		case sub := <-subscribe:
-			if !isUserExist(subscribers, sub.Name) {
-				subscribers.PushBack(sub) // Add user to the end of list.
-				// Publish a JOIN event.
+
+			if !isUserExist(subscribes, sub.Name) {
+				subscribes.PushBack(sub)
 				publish <- newEvent(models.EVENT_JOIN, sub.Name, "")
 				beego.Info("New user:", sub.Name, ";WebSocket:", sub.Conn != nil)
 			} else {
-				beego.Info("Old user:", sub.Name, ";WebSocket:", sub.Conn != nil)
+				beego.Info("Old user:", sub.Name, ";WebSocket:", sub.Conn)
 			}
+
 		case event := <-publish:
-			// Notify waiting list.
+
 			for ch := waitingList.Back(); ch != nil; ch = ch.Prev() {
 				ch.Value.(chan bool) <- true
 				waitingList.Remove(ch)
 			}
-
 			broadcastWebSocket(event)
 			models.NewArchive(event)
-
 			if event.Type == models.EVENT_MESSAGE {
 				beego.Info("Message from", event.User, ";Content:", event.Content)
 			}
+
 		case unsub := <-unsubscribe:
-			for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
+
+			for sub := subscribes.Front(); sub != nil; sub = sub.Next() {
 				if sub.Value.(Subscriber).Name == unsub {
-					subscribers.Remove(sub)
-					// Clone connection.
+					subscribes.Remove(sub)
+
 					ws := sub.Value.(Subscriber).Conn
 					if ws != nil {
 						ws.Close()
 						beego.Error("WebSocket closed:", unsub)
 					}
-					publish <- newEvent(models.EVENT_LEAVE, unsub, "") // Publish a LEAVE event.
+					publish <- newEvent(models.EVENT_LEAVE, unsub, "")
 					break
 				}
 			}

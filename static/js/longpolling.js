@@ -40,7 +40,6 @@ $(document).ready(function () {
         var uname = $('#uname').text();
         var content = $('#sendbox').val();
         $.post("/lp/post", {
-            uname: uname,
             content: content
         });
         $('#sendbox').val("");

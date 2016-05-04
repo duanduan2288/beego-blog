@@ -58,7 +58,7 @@ func broadcastWebSocket(event models.Event) {
 		return
 	}
 
-	for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
+	for sub := subscribes.Front(); sub != nil; sub = sub.Next() {
 		// Immediately send event to WebSocket users.
 		ws := sub.Value.(Subscriber).Conn
 		if ws != nil {
@@ -68,16 +68,4 @@ func broadcastWebSocket(event models.Event) {
 			}
 		}
 	}
-}
-func Parse(i interface{}) string {
-	switch i.(type) {
-	case string:
-		return i.(string)
-	case []string:
-		data := i.([]string)
-		return data[0]
-	default:
-		panic("type match miss")
-	}
-	return ""
 }

@@ -1,4 +1,4 @@
-<script type="text/javascript" src="/static/js/websocket.js"></script>
+<script type="text/javascript" src="/static/js/longpolling.js"></script>
 <div class="row">
  	<div id="chat-column" class="span8 well">
 	

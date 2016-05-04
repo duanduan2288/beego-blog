@@ -16,6 +16,18 @@ func (this *baseController) Prepare() {
 	this.Data["lang"] = "zh-CN"
 }
 
+func Parse(i interface{}) string {
+	switch i.(type) {
+	case string:
+		return i.(string)
+	case []string:
+		data := i.([]string)
+		return data[0]
+	default:
+		panic("类型错误")
+	}
+}
+
 type AppController struct {
 	baseController
 }
